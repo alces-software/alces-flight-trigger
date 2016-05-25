@@ -49,7 +49,7 @@ describe '/trigger/:script' do
       response_json['error']
   end
 
-  it 'returns error if receives invalid request JSON' do
+  it 'returns overall error if receives invalid request JSON' do
     invalid_json = 'foo'
 
     response = @http.post('/trigger/printer', invalid_json)
@@ -57,6 +57,18 @@ describe '/trigger/:script' do
 
     assert_equal '422', response.code
     assert_equal "Received invalid request JSON", response_json['error']
+  end
+
+  it 'returns trigger-level error if trigger script gives error' do
+    response = @http.post('/trigger/bad_interpreter', standard_test_json)
+    response_json = JSON.parse(response.body)
+    trigger_response = response_json['responses'].first
+
+    # Overall request is successful.
+    assert_equal '200', response.code
+
+    # Only makes sense for trigger response to have these keys.
+    assert_equal ['profile', 'error'], trigger_response.keys
   end
 
   private

@@ -1,0 +1,3 @@
+#!/bin/does/not/exist
+
+# Script which will give an error as the interpreter does not exist.

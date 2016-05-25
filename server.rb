@@ -81,29 +81,37 @@ class Server < Sinatra::Application
     Dir.entries(TRIGGER_REPOS_DIR).map do |repo|
       trigger = File.join(TRIGGER_REPOS_DIR, repo, "/triggers/#{params[:script]}")
       if File.exists?(trigger)
-        stdout, _stderr, status = Open3.capture3(
-          trigger, *@options, '--', *@args, stdin_data: @input
-        )
+        begin
+          stdout, _stderr, status = Open3.capture3(
+            trigger, *@options, '--', *@args, stdin_data: @input
+          )
 
-        trigger_response = {
-          profile: repo,
-          exitCode: status.exitstatus,
-        }
+          trigger_response = {
+            profile: repo,
+            exitCode: status.exitstatus,
+          }
 
-        first_line, *rest = stdout.lines
-        if first_line && first_line.strip == '#json'
-          trigger_response.merge!({
-            contentType: 'application/json',
-            result: JSON.parse(rest.join),
-          })
+          first_line, *rest = stdout.lines
+          if first_line && first_line.strip == '#json'
+            trigger_response.merge!({
+              contentType: 'application/json',
+              result: JSON.parse(rest.join),
+            })
+          else
+            trigger_response.merge!({
+              contentType: 'text/plain',
+              result: stdout,
+            })
+          end
+
+        rescue => e
+          {
+            profile: repo,
+            error: e.message,
+          }
         else
-          trigger_response.merge!({
-            contentType: 'text/plain',
-            result: stdout,
-          })
+          trigger_response
         end
-
-        trigger_response
       end
     end
     .reject {|arg| arg.nil?}
