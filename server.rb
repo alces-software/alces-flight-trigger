@@ -3,26 +3,35 @@ require 'json'
 require 'sinatra'
 require 'open3'
 
+TRIGGER_REPOS_DIR = "/opt/clusterware/var/lib/trigger/"
+
 post '/trigger/:script' do
   data = JSON.parse(request.body.read)
   args = data['args']
   options = munge_options(data['options'])
   input = data['input']
 
-  triggers_with_name(params[:script]).map do |trigger|
-    stdout, stderr, status = Open3.capture3(
-      trigger, *options, '--', *args, stdin_data: input
-    )
+  responses = []
+  Dir.foreach(TRIGGER_REPOS_DIR) do |repo|
+    trigger = File.join(TRIGGER_REPOS_DIR, repo, "/triggers/#{params[:script]}")
+    if File.exists?(trigger)
+      stdout, stderr, status = Open3.capture3(
+        trigger, *options, '--', *args, stdin_data: input
+      )
 
-    puts 'HERE', stdout, '***', stderr, '***', status.exitstatus, 'HERE'
-
-    # Required to prevent error until returning useful response.
-    'Hello World'
+      trigger_response = {
+        profile: repo,
+        contentType: 'text/plain',
+        exitCode: status.exitstatus,
+        result: stdout,
+      }
+      responses << trigger_response
+    end
   end
-end
 
-def triggers_with_name(name)
-  Dir.glob("/opt/clusterware/var/lib/trigger/*/triggers/#{name}")
+  response = {responses: responses}
+  content_type :json
+  response.to_json
 end
 
 def munge_options(options)
