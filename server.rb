@@ -36,24 +36,22 @@ class Server < Sinatra::Application
   private
 
   def parse_trigger_request
-    begin
-      data = JSON.parse(request.body.read)
-      JSON::Validator.validate!(TRIGGER_REQUEST_SCHEMA, data)
-    rescue JSON::ParserError => e
-      @error = "Received invalid request JSON"
-    rescue JSON::Schema::ValidationError => e
-      @error = e.message
-    ensure
-      if @error
-        status 422
-        body({error: @error}.to_json)
-        return
-      end
-    end
+    data = JSON.parse(request.body.read)
+    JSON::Validator.validate!(TRIGGER_REQUEST_SCHEMA, data)
 
+    @trigger_name = params[:script]
     @args = data['args']
     @options = munge_options(data['options'])
     @input = data['input']
+  rescue JSON::ParserError => e
+    @error = "Received invalid request JSON"
+  rescue JSON::Schema::ValidationError => e
+    @error = e.message
+  ensure
+    if @error
+      status 422
+      body({error: @error}.to_json)
+    end
   end
 
   def munge_options(options)
@@ -79,41 +77,45 @@ class Server < Sinatra::Application
 
   def trigger_responses
     Dir.entries(TRIGGER_REPOS_DIR).map do |repo|
-      trigger = File.join(TRIGGER_REPOS_DIR, repo, "/triggers/#{params[:script]}")
-      if File.exists?(trigger)
-        begin
-          stdout, _stderr, status = Open3.capture3(
-            trigger, *@options, '--', *@args, stdin_data: @input
-          )
-
-          trigger_response = {
-            profile: repo,
-            exitCode: status.exitstatus,
-          }
-
-          first_line, *rest = stdout.lines
-          if first_line && first_line.strip == '#json'
-            trigger_response.merge!({
-              contentType: 'application/json',
-              result: JSON.parse(rest.join),
-            })
-          else
-            trigger_response.merge!({
-              contentType: 'text/plain',
-              result: stdout,
-            })
-          end
-
-        rescue => e
-          {
-            profile: repo,
-            error: e.message,
-          }
-        else
-          trigger_response
-        end
-      end
+      run_trigger_for_repo(repo)
     end
     .reject {|arg| arg.nil?}
+  end
+
+  def run_trigger_for_repo(repo)
+    trigger = File.join(TRIGGER_REPOS_DIR, repo, "/triggers/#{@trigger_name}")
+    return nil if !File.exists?(trigger)
+
+    stdout, _stderr, status = Open3.capture3(
+      trigger, *@options, '--', *@args, stdin_data: @input
+    )
+
+    first_line, *rest = stdout.lines
+
+    {
+      profile: repo,
+      exitCode: status.exitstatus,
+    }
+    .merge(
+      json_output_indicator?(first_line) ?
+      {
+        contentType: 'application/json',
+        result: JSON.parse(rest.join),
+      }
+      :
+      {
+        contentType: 'text/plain',
+        result: stdout,
+      }
+    )
+  rescue => e
+    {
+      profile: repo,
+      error: e.message,
+    }
+  end
+
+  def json_output_indicator?(line)
+    line && line.strip == '#json'
   end
 end
