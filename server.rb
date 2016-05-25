@@ -1,14 +1,20 @@
 
 require 'json'
 require 'sinatra'
+require 'open3'
 
 post '/trigger/:script' do
   data = JSON.parse(request.body.read)
   args = data['args']
   options = munge_options(data['options'])
+  input = data['input']
 
   triggers_with_name(params[:script]).map do |trigger|
-    system(trigger, *options, '--', *args)
+    stdout, stderr, status = Open3.capture3(
+      trigger, *options, '--', *args, stdin_data: input
+    )
+
+    puts 'HERE', stdout, '***', stderr, '***', status.exitstatus, 'HERE'
 
     # Required to prevent error until returning useful response.
     'Hello World'
