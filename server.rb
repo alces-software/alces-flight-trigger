@@ -15,7 +15,7 @@ post '/trigger/:script' do
   Dir.foreach(TRIGGER_REPOS_DIR) do |repo|
     trigger = File.join(TRIGGER_REPOS_DIR, repo, "/triggers/#{params[:script]}")
     if File.exists?(trigger)
-      stdout, stderr, status = Open3.capture3(
+      stdout, _stderr, status = Open3.capture3(
         trigger, *options, '--', *args, stdin_data: input
       )
 
