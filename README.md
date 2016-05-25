@@ -44,3 +44,10 @@ Within standard Clusterware development VM:
   ```
   rvmsudo rake test
   ```
+
+- Manual requests with the same test data can also be made:
+
+  ```
+  yum install httpie
+  cat tests/test_data/standard.json | http localhost:4567/trigger/printer
+  ```

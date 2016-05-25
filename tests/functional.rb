@@ -21,22 +21,24 @@ describe '/trigger/:script' do
   end
 
   it 'triggers scripts correctly and returns text response' do
-    request_data = {
-      options: {
-        x: true,
-        'long-option': 20,
-      },
-      args: [
-        'first',
-        'second argument',
-      ],
-      input: "Here is the stdin for the script",
-    }.to_json
-
-    response = @http.post('/trigger/printer', request_data)
+    response = @http.post('/trigger/printer', standard_test_json)
     response_json = JSON.parse(response.body)
 
     expected_response = {"responses"=>[{"profile"=>"repo1", "contentType"=>"text/plain", "exitCode"=>0, "result"=>"-x\n--long-option\n20\n--\nfirst\nsecond argument\nHere is the stdin for the script\n"}, {"profile"=>"repo2", "contentType"=>"text/plain", "exitCode"=>1, "result"=>""}]}
     assert_equal response_json, expected_response
+  end
+
+  private
+
+  def standard_test_json
+    load_test_data('standard.json')
+  end
+
+  def load_test_data(filename)
+    File.read(File.join(test_data_path, filename))
+  end
+
+  def test_data_path
+    File.join(File.dirname(__FILE__), 'test_data')
   end
 end
