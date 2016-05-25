@@ -21,10 +21,22 @@ post '/trigger/:script' do
 
       trigger_response = {
         profile: repo,
-        contentType: 'text/plain',
         exitCode: status.exitstatus,
-        result: stdout,
       }
+
+      first_line, *rest = stdout.lines
+      if first_line && first_line.strip == '#json'
+        trigger_response.merge!({
+          contentType: 'application/json',
+          result: JSON.parse(rest.join),
+        })
+      else
+        trigger_response.merge!({
+          contentType: 'text/plain',
+          result: stdout,
+        })
+      end
+
       responses << trigger_response
     end
   end

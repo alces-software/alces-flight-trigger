@@ -1,0 +1,24 @@
+#!/opt/clusterware/opt/ruby/bin/ruby
+
+require 'json'
+
+# Script which prints some Json containing data including args and stdin.
+
+puts ' #json '
+
+args = ARGV.map {|arg| arg}
+
+# Clear ARGV so ARGF reads stdin instead of interpreting ARGV as filenames
+# (suggested here: http://stackoverflow.com/a/34906353).
+ARGV.clear
+
+stdin = ARGF.read
+
+json = {
+  args: args,
+  stdin: stdin,
+  moreJson: {foo: 5, bar: 6}
+}
+
+# Pretty-print Json to ensure app parses correctly when over multiple lines.
+puts JSON.pretty_generate json

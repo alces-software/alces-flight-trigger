@@ -28,6 +28,14 @@ describe '/trigger/:script' do
     assert_equal response_json, expected_response
   end
 
+  it 'returns result as json when first line is "#json"' do
+    response = @http.post('/trigger/json_printer', standard_test_json)
+    response_json = JSON.parse(response.body)
+
+    expected_response = {"responses"=>[{"profile"=>"repo1", "exitCode"=>0, "contentType"=>"application/json", "result"=>{"args"=>["-x", "--long-option", "20", "--", "first", "second argument"], "stdin"=>"Here is the stdin for the script", "moreJson"=>{"foo"=>5, "bar"=>6}}}]}
+    assert_equal response_json, expected_response
+  end
+
   private
 
   def standard_test_json
