@@ -1,12 +1,34 @@
 
 require 'json'
+require 'json-schema'
 require 'sinatra'
 require 'open3'
 
 TRIGGER_REPOS_DIR = "/opt/clusterware/var/lib/trigger/"
 
+# TODO: Could validate structure more deeply e.g. that each arg and option key
+# is a simple value and not an object or array.
+TRIGGER_REQUEST_SCHEMA = {
+  type: 'object',
+  required: ['args', 'input', 'options'],
+  properties: {
+    args: {type: 'array'},
+    input: {type: 'string'},
+    options: {type: 'object'},
+  }
+}
+
 post '/trigger/:script' do
+  content_type :json
   data = JSON.parse(request.body.read)
+
+  begin
+    JSON::Validator.validate!(TRIGGER_REQUEST_SCHEMA, data)
+  rescue JSON::Schema::ValidationError => e
+    status 422
+    return {error: e.message}.to_json
+  end
+
   args = data['args']
   options = munge_options(data['options'])
   input = data['input']
@@ -42,7 +64,6 @@ post '/trigger/:script' do
   end
 
   response = {responses: responses}
-  content_type :json
   response.to_json
 end
 

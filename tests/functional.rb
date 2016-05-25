@@ -36,6 +36,19 @@ describe '/trigger/:script' do
     assert_equal response_json, expected_response
   end
 
+  it 'validates request JSON contains needed properties' do
+    test_json = JSON.parse(standard_test_json).
+      delete_if {|k| k == 'args'}.
+      to_json
+
+    response = @http.post('/trigger/printer', test_json)
+    response_json = JSON.parse(response.body)
+
+    assert_equal '422', response.code
+    assert_equal "The property '#/' did not contain a required property of 'args'",
+      response_json['error']
+  end
+
   private
 
   def standard_test_json

@@ -1,6 +1,9 @@
 GEM
   remote: http://rubygems.org/
   specs:
+    addressable (2.3.8)
+    json-schema (2.6.2)
+      addressable (~> 2.3.8)
     minitest (5.4.3)
     rack (1.6.4)
     rack-protection (1.5.3)
@@ -15,6 +18,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  json-schema
   minitest
   sinatra
 
