@@ -49,6 +49,16 @@ describe '/trigger/:script' do
       response_json['error']
   end
 
+  it 'returns error if receives invalid request JSON' do
+    invalid_json = 'foo'
+
+    response = @http.post('/trigger/printer', invalid_json)
+    response_json = JSON.parse(response.body)
+
+    assert_equal '422', response.code
+    assert_equal "Received invalid request JSON", response_json['error']
+  end
+
   private
 
   def standard_test_json

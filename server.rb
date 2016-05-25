@@ -20,13 +20,19 @@ TRIGGER_REQUEST_SCHEMA = {
 
 post '/trigger/:script' do
   content_type :json
-  data = JSON.parse(request.body.read)
 
   begin
+    data = JSON.parse(request.body.read)
     JSON::Validator.validate!(TRIGGER_REQUEST_SCHEMA, data)
+  rescue JSON::ParserError => e
+    error = "Received invalid request JSON"
   rescue JSON::Schema::ValidationError => e
-    status 422
-    return {error: e.message}.to_json
+    error = e.message
+  ensure
+    if error
+      status 422
+      return {error: error}.to_json
+    end
   end
 
   args = data['args']
