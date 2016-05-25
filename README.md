@@ -33,8 +33,14 @@ Within standard Clusterware development VM:
     bundle install
     ```
 
-- Run:
+- Run development server:
 
   ```
   rerun --force-polling ruby server.rb
+  ```
+
+- Tests can be run with:
+
+  ```
+  rvmsudo rake test
   ```

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Script which fails.
+
+return 1
