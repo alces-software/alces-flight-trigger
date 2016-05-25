@@ -36,7 +36,7 @@ Within standard Clusterware development VM:
 - Run development server:
 
   ```
-  rerun --force-polling ruby server.rb
+  rerun --force-polling -- rackup -p 4567
   ```
 
 - Tests can be run with:

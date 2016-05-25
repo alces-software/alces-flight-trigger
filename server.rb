@@ -1,95 +1,111 @@
 
 require 'json'
 require 'json-schema'
-require 'sinatra'
+require 'sinatra/base'
 require 'open3'
 
-TRIGGER_REPOS_DIR = "/opt/clusterware/var/lib/trigger/"
+class Server < Sinatra::Application
+  TRIGGER_REPOS_DIR = "/opt/clusterware/var/lib/trigger/"
 
-# TODO: Could validate structure more deeply e.g. that each arg and option key
-# is a simple value and not an object or array.
-TRIGGER_REQUEST_SCHEMA = {
-  type: 'object',
-  required: ['args', 'input', 'options'],
-  properties: {
-    args: {type: 'array'},
-    input: {type: 'string'},
-    options: {type: 'object'},
+  # TODO: Could validate structure more deeply e.g. that each arg and option key
+  # is a simple value and not an object or array.
+  TRIGGER_REQUEST_SCHEMA = {
+    type: 'object',
+    required: ['args', 'input', 'options'],
+    properties: {
+      args: {type: 'array'},
+      input: {type: 'string'},
+      options: {type: 'object'},
+    }
   }
-}
 
-post '/trigger/:script' do
-  content_type :json
-
-  begin
-    data = JSON.parse(request.body.read)
-    JSON::Validator.validate!(TRIGGER_REQUEST_SCHEMA, data)
-  rescue JSON::ParserError => e
-    error = "Received invalid request JSON"
-  rescue JSON::Schema::ValidationError => e
-    error = e.message
-  ensure
-    if error
-      status 422
-      return {error: error}.to_json
-    end
+  before do
+    content_type :json
   end
 
-  args = data['args']
-  options = munge_options(data['options'])
-  input = data['input']
+  post('/trigger/:script') do
+    parse_trigger_request
+    if @error
+      return
+    end
 
-  responses = []
-  Dir.foreach(TRIGGER_REPOS_DIR) do |repo|
-    trigger = File.join(TRIGGER_REPOS_DIR, repo, "/triggers/#{params[:script]}")
-    if File.exists?(trigger)
-      stdout, _stderr, status = Open3.capture3(
-        trigger, *options, '--', *args, stdin_data: input
-      )
+    response = {responses: trigger_responses}
+    response.to_json
+  end
 
-      trigger_response = {
-        profile: repo,
-        exitCode: status.exitstatus,
-      }
+  private
 
-      first_line, *rest = stdout.lines
-      if first_line && first_line.strip == '#json'
-        trigger_response.merge!({
-          contentType: 'application/json',
-          result: JSON.parse(rest.join),
-        })
+  def parse_trigger_request
+    begin
+      data = JSON.parse(request.body.read)
+      JSON::Validator.validate!(TRIGGER_REQUEST_SCHEMA, data)
+    rescue JSON::ParserError => e
+      @error = "Received invalid request JSON"
+    rescue JSON::Schema::ValidationError => e
+      @error = e.message
+    ensure
+      if @error
+        status 422
+        body({error: @error}.to_json)
+        return
+      end
+    end
+
+    @args = data['args']
+    @options = munge_options(data['options'])
+    @input = data['input']
+  end
+
+  def munge_options(options)
+    options.map do |key, value|
+      prefix = key.length == 1 ? '-' : '--'
+      option = "#{prefix}#{key}"
+
+      if value == true
+        # No argument.
+        argument = nil
+      elsif !value
+        # Ignore the option.
+        return nil
       else
-        trigger_response.merge!({
-          contentType: 'text/plain',
-          result: stdout,
-        })
+        argument = value.to_s
       end
 
-      responses << trigger_response
+      [option, argument]
     end
+    .flatten
+    .reject {|arg| arg.nil?}
   end
 
-  response = {responses: responses}
-  response.to_json
-end
+  def trigger_responses
+    Dir.entries(TRIGGER_REPOS_DIR).map do |repo|
+      trigger = File.join(TRIGGER_REPOS_DIR, repo, "/triggers/#{params[:script]}")
+      if File.exists?(trigger)
+        stdout, _stderr, status = Open3.capture3(
+          trigger, *@options, '--', *@args, stdin_data: @input
+        )
 
-def munge_options(options)
-  options.map do |key, value|
-    prefix = key.length == 1 ? '-' : '--'
-    option = "#{prefix}#{key}"
+        trigger_response = {
+          profile: repo,
+          exitCode: status.exitstatus,
+        }
 
-    if value == true
-      # No argument.
-      argument = nil
-    elsif !value
-      # Ignore the option.
-      return nil
-    else
-      argument = value.to_s
+        first_line, *rest = stdout.lines
+        if first_line && first_line.strip == '#json'
+          trigger_response.merge!({
+            contentType: 'application/json',
+            result: JSON.parse(rest.join),
+          })
+        else
+          trigger_response.merge!({
+            contentType: 'text/plain',
+            result: stdout,
+          })
+        end
+
+        trigger_response
+      end
     end
-
-    [option, argument]
+    .reject {|arg| arg.nil?}
   end
-  .flatten
-  .reject {|arg| arg.nil?}
 end
