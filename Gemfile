@@ -5,6 +5,7 @@ ruby '2.2.3'
 source 'http://rubygems.org'
 
 gem 'json-schema'
+gem 'puma'
 gem 'sinatra'
 
 group :test do

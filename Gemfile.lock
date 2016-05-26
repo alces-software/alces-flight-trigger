@@ -5,6 +5,7 @@ GEM
     json-schema (2.6.2)
       addressable (~> 2.3.8)
     minitest (5.4.3)
+    puma (3.4.0)
     rack (1.6.4)
     rack-protection (1.5.3)
       rack
@@ -20,6 +21,7 @@ PLATFORMS
 DEPENDENCIES
   json-schema
   minitest
+  puma
   sinatra
 
 RUBY VERSION

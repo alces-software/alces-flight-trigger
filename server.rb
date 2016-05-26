@@ -20,6 +20,10 @@ class Server < Sinatra::Application
     }
   }
 
+  configure do
+    set :server, :puma
+  end
+
   use Rack::Auth::Basic, "Username and password required" do |username, password|
     username == credentials[:username] && password == credentials[:password]
   end
