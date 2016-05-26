@@ -83,7 +83,7 @@ describe '/trigger/:script' do
 
   def make_authenticated_request
     @request = request.tap do |request|
-      request.basic_auth 'foo', 'bar'
+      request.basic_auth 'test_username', 'test_password'
     end
     make_request
   end

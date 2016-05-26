@@ -6,6 +6,7 @@ require 'open3'
 
 class Server < Sinatra::Application
   TRIGGER_REPOS_DIR = "/opt/clusterware/var/lib/trigger/"
+  CREDENTIALS_FILE = File.join(TRIGGER_REPOS_DIR, '.credentials')
 
   # TODO: Could validate structure more deeply e.g. that each arg and option key
   # is a simple value and not an object or array.
@@ -20,7 +21,7 @@ class Server < Sinatra::Application
   }
 
   use Rack::Auth::Basic, "Username and password required" do |username, password|
-    username == 'foo' && password == 'bar'
+    username == credentials[:username] && password == credentials[:password]
   end
 
   before do
@@ -38,6 +39,14 @@ class Server < Sinatra::Application
   end
 
   private
+
+  def self.credentials
+    username, password = File.readlines(CREDENTIALS_FILE).first.chomp.split(':')
+    {
+      username: username,
+      password: password,
+    }
+  end
 
   def parse_trigger_request
     data = JSON.parse(request.body.read)
