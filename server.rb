@@ -19,6 +19,10 @@ class Server < Sinatra::Application
     }
   }
 
+  use Rack::Auth::Basic, "Username and password required" do |username, password|
+    username == 'foo' && password == 'bar'
+  end
+
   before do
     content_type :json
   end

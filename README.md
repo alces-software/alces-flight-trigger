@@ -49,5 +49,5 @@ Within standard Clusterware development VM:
 
   ```
   yum install httpie
-  cat tests/test_data/standard.json | http localhost:4567/trigger/printer
+  cat tests/test_data/standard.json | http localhost:4567/trigger/printer --auth username:password
   ```
