@@ -20,6 +20,8 @@ describe '/trigger/:script' do
 
   it 'triggers scripts correctly and returns text response' do
     response = make_authenticated_request('printer', standard_test_json)
+    assert_equal '200', response.code
+
     response_json = JSON.parse(response.body)
 
     expected_response = {"responses"=>[{"profile"=>"repo1", "contentType"=>"text/plain", "exitCode"=>0, "result"=>"-x\n--long-option\n20\n--\nfirst\nsecond argument\nHere is the stdin for the script\n"}, {"profile"=>"repo2", "contentType"=>"text/plain", "exitCode"=>1, "result"=>""}]}
@@ -28,6 +30,8 @@ describe '/trigger/:script' do
 
   it 'returns result as json when first line is "#json"' do
     response = make_authenticated_request('json_printer', standard_test_json)
+    assert_equal '200', response.code
+
     response_json = JSON.parse(response.body)
 
     expected_response = {"responses"=>[{"profile"=>"repo1", "exitCode"=>0, "contentType"=>"application/json", "result"=>{"args"=>["-x", "--long-option", "20", "--", "first", "second argument"], "stdin"=>"Here is the stdin for the script", "moreJson"=>{"foo"=>5, "bar"=>6}}}]}
@@ -40,9 +44,9 @@ describe '/trigger/:script' do
       to_json
 
     response = make_authenticated_request('printer', test_json)
-    response_json = JSON.parse(response.body)
-
     assert_equal '422', response.code
+
+    response_json = JSON.parse(response.body)
     assert_equal "The property '#/' did not contain a required property of 'args'",
       response_json['error']
   end
@@ -51,19 +55,20 @@ describe '/trigger/:script' do
     invalid_json = 'foo'
 
     response = make_authenticated_request('printer', invalid_json)
-    response_json = JSON.parse(response.body)
-
     assert_equal '422', response.code
+
+    response_json = JSON.parse(response.body)
     assert_equal "Received invalid request JSON", response_json['error']
   end
 
   it 'returns trigger-level error if trigger script gives error' do
     response = make_authenticated_request('bad_interpreter', standard_test_json)
-    response_json = JSON.parse(response.body)
-    trigger_response = response_json['responses'].first
 
     # Overall request is successful.
     assert_equal '200', response.code
+
+    response_json = JSON.parse(response.body)
+    trigger_response = response_json['responses'].first
 
     # Only makes sense for trigger response to have these keys.
     assert_equal ['profile', 'error'], trigger_response.keys
