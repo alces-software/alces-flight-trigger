@@ -9,7 +9,7 @@ describe '/trigger/:script' do
 
   def self.setup
     test_repos_path = File.join(File.dirname(__FILE__), 'test_repos')
-    trigger_repos_path = '/opt/clusterware/var/lib/triggers'
+    trigger_repos_path = "#{ENV['cw_ROOT']}/var/lib/triggers"
 
     # Delete any existing trigger repos and replace with link to test trigger
     # repos.

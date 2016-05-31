@@ -5,7 +5,7 @@ require 'sinatra/base'
 require 'open3'
 
 class Server < Sinatra::Application
-  TRIGGER_REPOS_DIR = "/opt/clusterware/var/lib/triggers/"
+  TRIGGER_REPOS_DIR = "#{ENV['cw_ROOT']}/var/lib/triggers"
   CREDENTIALS_FILE = File.join(TRIGGER_REPOS_DIR, '.credentials')
 
   # TODO: Could validate structure more deeply e.g. that each arg and option key
