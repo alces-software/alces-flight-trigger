@@ -24,8 +24,5 @@ DEPENDENCIES
   puma
   sinatra
 
-RUBY VERSION
-   ruby 2.2.3p173
-
 BUNDLED WITH
-   1.12.4
+   1.10.6

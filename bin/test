@@ -1,0 +1,8 @@
+#!/bin/bash
+set -euo pipefail
+
+# Script to run tests; server must already be running in
+# development mode.
+
+source 'bin/development-common.sh'
+rake test

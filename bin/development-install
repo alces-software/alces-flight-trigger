@@ -1,0 +1,17 @@
+#!/bin/bash
+set -euo pipefail
+
+# Script to be run within symlink-ed development folder
+
+source 'bin/development-common.sh'
+
+install_location="${cw_ROOT}/opt/alces-flight-trigger"
+ln -sT "$(pwd)" "${install_location}"
+cd "${install_location}"
+source bin/install
+bundle install --path=vendor
+
+# Install `rerun` from `master` so get `--force-polling` option for running in
+# Vagrant VM while developing on host.
+gem install specific_install
+gem specific_install https://github.com/alexch/rerun.git

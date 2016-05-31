@@ -5,49 +5,34 @@ An HTTP service to allow the execution of arbitrary scripts with arbitrary comma
 
 ## Development
 
-Within standard Clusterware development VM:
+This project is intended to be developed within a standard Clusterware VM.
 
-- Get RVM: https://rvm.io/
+- Make sure the project is synced in to the Clusterware VM, at a location such as `/media/host/alces-flight-trigger`.
 
-- Get same version as Clusterware Ruby:
+- Install the project for development:
 
-  ```
-  rvm install ruby-2.2.3
-  ```
-
-- Install dependencies:
-
-  - Rerun (install from `master` so get `--force-polling` option for running in Vagrant
-    while developing on host):
-
-    ```
-    sudo yum install git
-    gem install specific_install
-    gem specific_install https://github.com/alexch/rerun.git
-    ```
-
-  - Bundler and gems:
-
-    ```
-    gem install bundler
-    bundle install
-    ```
-
-- Run development server:
-
-  ```
-  rerun --force-polling -- rackup -p 4567
+  ```bash
+  sudo bin/development-install
   ```
 
-- Tests can be run with:
+  This will symlink the project to the correct standard location, `/opt/clusterware/opt/alces-flight-trigger`
 
+- The development server can then be run using:
+
+  ```bash
+  sudo bin/develop
   ```
-  rvmsudo rake test
+
+- The tests can be run while the development server is running with:
+
+  ```bash
+  sudo bin/test
   ```
 
 - Manual requests with the same test data can also be made:
 
-  ```
-  yum install httpie
-  cat tests/test_data/standard.json | http localhost:4567/trigger/printer --auth username:password
+  ```bash
+  sudo yum install epel-release
+  sudo yum install httpie
+  cat tests/test_data/standard.json | http localhost:25278/trigger/printer --auth username:password
   ```

@@ -1,0 +1,9 @@
+#!/bin/bash
+set -euo pipefail
+
+# Script to install production dependencies.
+
+yum install -y ruby-devel openssl-devel gmp-devel
+PATH="${cw_ROOT}"/opt/git/bin:"${cw_ROOT}"/opt/ruby/bin:$PATH
+bundle install --without="development test" --path=vendor
+gem install rack

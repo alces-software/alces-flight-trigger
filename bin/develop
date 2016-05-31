@@ -1,0 +1,7 @@
+#!/bin/bash
+set -euo pipefail
+
+# Script to run server in development mode.
+
+source 'bin/development-common.sh'
+rerun --force-polling -- rackup -p 25278

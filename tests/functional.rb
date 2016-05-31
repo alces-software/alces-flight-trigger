@@ -5,7 +5,7 @@ require 'net/http'
 
 describe '/trigger/:script' do
 
-  TEST_URI = 'http://localhost:4567'
+  TEST_URI = 'http://localhost:25278'
 
   def self.setup
     test_repos_path = File.join(File.dirname(__FILE__), 'test_repos')
