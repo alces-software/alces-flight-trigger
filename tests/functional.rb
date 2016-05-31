@@ -13,7 +13,7 @@ describe '/trigger/:script' do
 
     # Delete any existing trigger repos and replace with link to test trigger
     # repos.
-    File.delete(trigger_repos_path)
+    File.delete(trigger_repos_path) if File.exist?(trigger_repos_path)
     File.symlink(test_repos_path, trigger_repos_path)
   end
   setup
