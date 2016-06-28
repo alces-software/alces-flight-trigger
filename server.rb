@@ -104,7 +104,7 @@ class Server < Sinatra::Application
     return nil if !File.exists?(trigger)
 
     stdout, _stderr, status = Open3.capture3(
-      trigger, *@options, '--', *@args, stdin_data: @input
+      trigger, *@options, *@args, stdin_data: @input
     )
 
     first_line, *rest = stdout.lines
