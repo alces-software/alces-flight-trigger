@@ -58,7 +58,7 @@ echo 'username:secure_password' > "$cw_ROOT/var/lib/triggers/.credentials"
 systemctl start clusterware-alces-flight-www
 systemctl start clusterware-alces-flight-trigger
 
-# Install some trigger scripts.
+# Install some trigger scripts. Note these scripts must be executable (i.e. 0700/0750/0755).
 mkdir -p "$cw_ROOT/var/lib/triggers/{trigger_repo_1,trigger_repo_2}/triggers"
 cp /a/trigger/script/named/useful_stuff "$cw_ROOT/var/lib/triggers/trigger_repo_1/triggers/"
 cp /another/trigger/script/named/useful_stuff "$cw_ROOT/var/lib/triggers/trigger_repo_2/triggers/"
