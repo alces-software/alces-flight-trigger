@@ -27,6 +27,20 @@ describe '/trigger/:script' do
     assert_equal response_json, expected_response
   end
 
+  # This case is required to help support the triggers CLI tool, and is
+  # equivalent to providing empty stdin.
+  it 'triggers scripts correctly if input is null' do
+    @test_data = JSON.parse(standard_test_json).
+      tap {|test_data| test_data[:input] = nil}.
+      to_json
+    make_authenticated_request
+
+    assert_success
+
+    expected_response = {"responses"=>[{"profile"=>"repo1", "exitCode"=>0, "contentType"=>"text/plain", "result"=>"-x\n--long-option\n20\nfirst\nsecond argument\n\n"}, {"profile"=>"repo2", "exitCode"=>1, "contentType"=>"text/plain", "result"=>""}]}
+    assert_equal response_json, expected_response
+  end
+
   it 'returns result as json when first line is "#json"' do
     @trigger = 'json_printer'
     make_authenticated_request

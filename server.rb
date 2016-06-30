@@ -15,7 +15,7 @@ class Server < Sinatra::Application
     required: ['args', 'input', 'options'],
     properties: {
       args: {type: 'array'},
-      input: {type: 'string'},
+      input: {type: ['string', nil]},
       options: {type: 'object'},
     }
   }
