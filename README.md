@@ -46,7 +46,6 @@ Alces Flight Trigger is intended to be used within an Alces [Clusterware](https:
 # `alces-flight-trigger` service it will hook into this and be available as
 # part of the node's central HTTP service.
 alces service install alces-flight-www
-alces service enable alces-flight-www
 
 alces service install alces-flight-trigger
 alces service enable alces-flight-trigger
@@ -55,10 +54,14 @@ alces service enable alces-flight-trigger
 # authenticating requests to the trigger service.
 echo 'username:secure_password' > "$cw_ROOT/var/lib/triggers/.credentials"
 
+# start the www and trigger servers
+systemctl start clusterware-alces-flight-www
+systemctl start clusterware-alces-flight-trigger
+
 # Install some trigger scripts.
-mkdir -p "$cw_ROOT/var/lib/triggers/{trigger_repo_1,trigger_repo_2}"
-cp /a/trigger/script/named/useful_stuff "$cw_ROOT/var/lib/triggers/trigger_repo_1/"
-cp /another/trigger/script/named/useful_stuff "$cw_ROOT/var/lib/triggers/trigger_repo_2/"
+mkdir -p "$cw_ROOT/var/lib/triggers/{trigger_repo_1,trigger_repo_2}/triggers"
+cp /a/trigger/script/named/useful_stuff "$cw_ROOT/var/lib/triggers/trigger_repo_1/triggers/"
+cp /another/trigger/script/named/useful_stuff "$cw_ROOT/var/lib/triggers/trigger_repo_2/triggers/"
 
 # Requests to `$address/trigger/useful_stuff`, in the appropriate format and
 # using the installed credentials, should now return the results of running both
