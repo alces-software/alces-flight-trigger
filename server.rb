@@ -103,15 +103,12 @@ class Server < Sinatra::Application
     trigger = File.join(TRIGGER_REPOS_DIR, repo, "/triggers/#{@trigger_name}")
     return nil if !File.exists?(trigger)
 
-    stdout, _stderr, status = Open3.capture3(
-      trigger, *@options, *@args, stdin_data: @input
-    )
-
+    stdout, exit_code = run_trigger(trigger)
     first_line, *rest = stdout.lines
 
     {
       profile: repo,
-      exitCode: status.exitstatus,
+      exitCode: exit_code
     }
     .merge(
       json_output_indicator?(first_line) ?
@@ -130,6 +127,38 @@ class Server < Sinatra::Application
       profile: repo,
       error: e.message,
     }
+  end
+
+  def run_trigger(trigger)
+    if development?
+      puts
+      puts "Running trigger '#{trigger}'"
+      puts '=========='
+      puts "Options: '#{@options}'"
+      puts "Args: '#{@args}'"
+      puts "Stdin: '#{@input}'"
+      puts
+    end
+
+    stdout, stderr, status = Open3.capture3(
+      trigger, *@options, *@args, stdin_data: @input
+    )
+    exit_code = status.exitstatus
+
+    if development?
+      puts "Result for trigger '#{trigger}'"
+      puts '=========='
+      puts "Exit code: '#{exit_code}'"
+      puts "Stdout: '#{stdout}'"
+      puts "Stderr: '#{stderr}'"
+      puts
+    end
+
+    return [stdout, exit_code]
+  end
+
+  def development?
+    ENV['RACK_ENV'] == 'development'
   end
 
   def json_output_indicator?(line)
