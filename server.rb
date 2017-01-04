@@ -1,3 +1,7 @@
+#ALCES_META
+# Refer to `clusterware/scripts/development/propagate`.
+#path=/opt/clusterware/opt/alces-flight-trigger/server.rb
+#ALCES_META_END
 
 require 'json'
 require 'json-schema'
