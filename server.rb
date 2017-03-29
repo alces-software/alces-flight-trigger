@@ -61,7 +61,7 @@ class Server < Sinatra::Application
     JSON::Validator.validate!(TRIGGER_REQUEST_SCHEMA, data)
 
     @trigger_name = params[:script]
-    @args = data['args']
+    @args = data['args'].map(&:to_s)
     @options = munge_options(data['options'])
     @input = data['input']
   rescue JSON::ParserError => e
